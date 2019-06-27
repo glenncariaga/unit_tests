@@ -18,18 +18,26 @@ public class Employee implements Serializable {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
+
 	@NotEmpty(message = "First name must not be empty")
 	private String firstName;
-	
+
 	@NotEmpty(message = "Last name must not be empty")
 	private String lastName;
-	
+
 	@NotEmpty(message = "Email must not be empty")
 	@Email(message = "Email must be a valid email address")
 	private String email;
 
 	public Employee() {
+
+	}
+
+	public Employee(Long id, String firstName, String lastName, String email) {
+		this.id = id;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.email = email;
 	}
 
 	public Long getId() {
