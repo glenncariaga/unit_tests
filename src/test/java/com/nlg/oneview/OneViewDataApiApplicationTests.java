@@ -20,13 +20,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.nlg.oneview.controller.EmployeeRESTController;
 import com.nlg.oneview.model.Employee;
 
-@PrepareForTest({ URL.class, EmployeeRESTController.class, Employee.class })
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class OneViewDataApiApplicationTests {
 
 	@Autowired
 	private EmployeeRESTController employeeRESTController;
+
+	String url = "http://localhost:8090/employee-management/employees";
 
 	@Before
 	public void init() {
@@ -42,12 +43,12 @@ public class OneViewDataApiApplicationTests {
 		Assert.assertEquals(emp.toString(), employee.toString());
 	}
 
+	@PrepareForTest({ URL.class, EmployeeRESTController.class, Employee.class, HttpURLConnection.class })
 	@Test
 	public void doesExternalCallUseTheHttpConnector() throws Exception {
 		// mock data
 		Employee emp = new Employee(1L, "First", "Last", "email@email.com");
 		InputStream inputStream = new ByteArrayInputStream(emp.toString().getBytes(StandardCharsets.UTF_8));
-		String url = "http://localhost:8090/employee-management/employees";
 
 		URL mockURL = PowerMockito.mock(URL.class);
 		HttpURLConnection mockConnection = PowerMockito.mock(HttpURLConnection.class);

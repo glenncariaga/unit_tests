@@ -1,11 +1,6 @@
 package com.nlg.oneview.controller;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.List;
 
 import javax.validation.constraints.Max;
@@ -27,6 +22,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nlg.oneview.exception.RecordNotFoundException;
 import com.nlg.oneview.model.Employee;
 import com.nlg.oneview.repository.EmployeeRepository;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 @RestController
 @RequestMapping(value = "/employee-management", produces = { MediaType.APPLICATION_JSON_VALUE })
@@ -80,38 +79,23 @@ public class EmployeeRESTController {
 	}
 
 	@PostMapping("/employees/special")
-	public Employee externalCall(@RequestBody Employee employee) throws IOException {
+	public void externalCall(@RequestBody Employee employee) throws IOException {
 
+		OkHttpClient client = new OkHttpClient();
 		ObjectMapper _payload = new ObjectMapper();
 		String payload = _payload.writeValueAsString(employee);
-		URL url = new URL("http://localhost:8090/employee-management/employees");
-		HttpURLConnection con = (HttpURLConnection) url.openConnection();
-		con.setDoOutput(true);
-		con.setDoInput(true);
-		con.setRequestMethod("POST");
-		con.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
-
-		OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
-		wr.write(payload);
-		wr.close();
-
-		StringBuilder sb = new StringBuilder();
-		int HttpResult = con.getResponseCode();
-		if (HttpResult == HttpURLConnection.HTTP_OK) {
-			System.out.println("HTTP OK");
-			String line;
-			BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "utf-8"));
-			while ((line = br.readLine()) != null) {
-				sb.append(line);
-			}
-
-			ObjectMapper _newEmployee = new ObjectMapper();
-			Employee newEmployee = new Employee();
-			newEmployee = _newEmployee.readValue(sb.toString(), Employee.class);
-			return newEmployee;
-		} else {
-			System.out.println(con.getResponseMessage());
-			return null;
+		okhttp3.RequestBody body = okhttp3.RequestBody.create(payload,
+				okhttp3.MediaType.parse("application/json; charset=utf-8"));
+		System.out.println(body.toString());
+		System.out.println(payload.toString());
+		Request request = new Request.Builder().url("http://localhost:8090/employee-management/employees").post(body)
+				.build();
+		try (Response response = client.newCall(request).execute()) {
+			String _response = response.body().toString();
+			System.out.println(_response);
+//			ObjectMapper _employee = new ObjectMapper();
+//			Employee newEmployee = _employee.readValue(_response, Employee.class);
+//			return newEmployee;
 		}
 	}
 }
