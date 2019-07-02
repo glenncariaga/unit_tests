@@ -1,37 +1,53 @@
 package com.nlg.oneview;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nlg.oneview.controller.EmployeeRESTController;
 import com.nlg.oneview.model.Employee;
+import com.nlg.oneview.repository.EmployeeRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class OneViewDataApiApplicationTests {
 
+//	private MockWebServer externalAPI;
+//	private String baseUrl;
+	@Mock
+	EmployeeRepository repository;
+
 	@Autowired
+	@InjectMocks
 	private EmployeeRESTController employeeRESTController;
 
-	String url = "http://localhost:8090/employee-management/employees";
-
 	@Before
-	public void init() {
+	public void init() throws IOException {
+//		externalAPI = new MockWebServer();
+//		externalAPI.start();
+//		HttpUrl _baseUrl = externalAPI.url("/");
+//		baseUrl = _baseUrl.toString();
 
+		MockitoAnnotations.initMocks(this);
+		employeeRESTController = new EmployeeRESTController();
+		employeeRESTController.setRepository(repository);
+	}
+
+	@After
+	public void shutdown() throws IOException {
+//		externalAPI.shutdown();
 	}
 
 	@Test
@@ -43,25 +59,28 @@ public class OneViewDataApiApplicationTests {
 		Assert.assertEquals(emp.toString(), employee.toString());
 	}
 
-	@PrepareForTest({ URL.class, EmployeeRESTController.class, Employee.class, HttpURLConnection.class })
 	@Test
 	public void doesExternalCallUseTheHttpConnector() throws Exception {
 		// mock data
 		Employee emp = new Employee(1L, "First", "Last", "email@email.com");
-		InputStream inputStream = new ByteArrayInputStream(emp.toString().getBytes(StandardCharsets.UTF_8));
 
-		URL mockURL = PowerMockito.mock(URL.class);
-		HttpURLConnection mockConnection = PowerMockito.mock(HttpURLConnection.class);
+		// POJO to JSON string parser
+		ObjectMapper _payload = new ObjectMapper();
+		String payload = _payload.writeValueAsString(emp);
 
-		PowerMockito.whenNew(URL.class).withArguments(url).thenReturn(mockURL);
-		PowerMockito.when(mockURL.openConnection()).thenReturn(mockConnection);
-		PowerMockito.when(mockConnection.getResponseCode()).thenReturn(HttpURLConnection.HTTP_OK);
-		PowerMockito.when(mockConnection.getInputStream()).thenReturn(inputStream);
+		// set the mock server for a response
+//		externalAPI.enqueue(new MockResponse().setResponseCode(200)
+//				.addHeader("Content-Type", "application/json; charset=utf-8").setBody("test test"));
 
-		Employee employee = employeeRESTController.externalCall(emp);
+		EmployeeRESTController mockedEndpoint = Mockito.mock(EmployeeRESTController.class);
+
+		// run the method under test
+//		Mockito.when(employeeRESTController.getExternalUrl()).thenReturn(baseUrl);
+		Employee employee = mockedEndpoint.externalCall(emp);
+
+//		System.out.println("baseUrl: " + baseUrl);
+//		System.out.println("check payload" + payload);
+		// test cases
 		Assert.assertEquals(emp.toString(), employee.toString());
-
-		Mockito.verify(mockConnection).setRequestMethod("POST");
-		Mockito.verify(mockConnection).setRequestProperty("Content-Type", "application/json; charset=UTF-8");
 	}
 }

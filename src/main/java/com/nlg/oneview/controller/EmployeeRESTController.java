@@ -31,6 +31,7 @@ import okhttp3.Response;
 @RequestMapping(value = "/employee-management", produces = { MediaType.APPLICATION_JSON_VALUE })
 @Validated
 public class EmployeeRESTController {
+
 	@Autowired
 	private EmployeeRepository repository;
 
@@ -79,23 +80,26 @@ public class EmployeeRESTController {
 	}
 
 	@PostMapping("/employees/special")
-	public void externalCall(@RequestBody Employee employee) throws IOException {
+	public Employee externalCall(@RequestBody Employee employee) throws IOException {
 
 		OkHttpClient client = new OkHttpClient();
 		ObjectMapper _payload = new ObjectMapper();
 		String payload = _payload.writeValueAsString(employee);
 		okhttp3.RequestBody body = okhttp3.RequestBody.create(payload,
 				okhttp3.MediaType.parse("application/json; charset=utf-8"));
-		System.out.println(body.toString());
-		System.out.println(payload.toString());
-		Request request = new Request.Builder().url("http://localhost:8090/employee-management/employees").post(body)
-				.build();
+
+		Request request = new Request.Builder().url(getExternalUrl()).post(body).build();
+		System.out.println("url: " + getExternalUrl());
 		try (Response response = client.newCall(request).execute()) {
-			String _response = response.body().toString();
-			System.out.println(_response);
-//			ObjectMapper _employee = new ObjectMapper();
-//			Employee newEmployee = _employee.readValue(_response, Employee.class);
-//			return newEmployee;
+			String _response = response.body().string();
+			System.out.println("response: " + _response);
+			ObjectMapper _employee = new ObjectMapper();
+			Employee newEmployee = _employee.readValue(_response, Employee.class);
+			return newEmployee;
 		}
+	}
+
+	public String getExternalUrl() {
+		return "http://localhost:8090/employee-management/employees";
 	}
 }

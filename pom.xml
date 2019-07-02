@@ -18,6 +18,7 @@
 		<java.version>1.8</java.version>
 		<powermock.version>2.0.2</powermock.version>
 		<okhttp.version>4.0.0</okhttp.version>
+		    <mockwebserver.version>2.7.5</mockwebserver.version>
 	</properties>
 
 	<dependencies>
@@ -64,6 +65,13 @@
 			<artifactId>mssql-jdbc</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+    <groupId>com.squareup.okhttp</groupId>
+    <artifactId>mockwebserver</artifactId>
+<version>${mockwebserver.version}</version>
+    <scope>test</scope>
+</dependency>
+		
 		<dependency>
       <groupId>org.powermock</groupId>
       <artifactId>powermock-module-junit4</artifactId>
