@@ -8,6 +8,7 @@ import javax.validation.constraints.Min;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.lang.Nullable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -80,15 +81,16 @@ public class EmployeeRESTController {
 	}
 
 	@PostMapping("/employees/special")
-	public Employee externalCall(@RequestBody Employee employee) throws IOException {
+	public Employee externalCall(@RequestBody Employee employee, @Nullable String testUrl) throws IOException {
 
+		String useThisUrl = testUrl == null ? getExternalUrl() : testUrl;
 		OkHttpClient client = new OkHttpClient();
 		ObjectMapper _payload = new ObjectMapper();
 		String payload = _payload.writeValueAsString(employee);
 		okhttp3.RequestBody body = okhttp3.RequestBody.create(payload,
 				okhttp3.MediaType.parse("application/json; charset=utf-8"));
 
-		Request request = new Request.Builder().url(getExternalUrl()).post(body).build();
+		Request request = new Request.Builder().url(useThisUrl).post(body).build();
 		System.out.println("url: " + getExternalUrl());
 		try (Response response = client.newCall(request).execute()) {
 			String _response = response.body().string();
