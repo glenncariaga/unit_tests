@@ -50,19 +50,19 @@ public class EmployeeRESTController {
 	}
 
 	@PostMapping("/employees")
-	Employee createOrSaveEmployee(@RequestBody Employee newEmployee) {
+	public Employee createOrSaveEmployee(@RequestBody Employee newEmployee) {
 		return repository.save(newEmployee);
 	}
 
 	@GetMapping("/employees/{id}")
-	Employee getEmployeeById(
+	public Employee getEmployeeById(
 			@PathVariable @Min(value = 1, message = "id must be greater than or equal to 1") @Max(value = 1000, message = "id must be lower than or equal to 1000") Long id) {
 		return repository.findById(id)
 				.orElseThrow(() -> new RecordNotFoundException("Employee id '" + id + "' does no exist"));
 	}
 
 	@PutMapping("/employees/{id}")
-	Employee updateEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
+	public Employee updateEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
 
 		return repository.findById(id).map(employee -> {
 			employee.setFirstName(newEmployee.getFirstName());
@@ -76,7 +76,7 @@ public class EmployeeRESTController {
 	}
 
 	@DeleteMapping("/employees/{id}")
-	void deleteEmployee(@PathVariable Long id) {
+	public void deleteEmployee(@PathVariable Long id) {
 		repository.deleteById(id);
 	}
 
