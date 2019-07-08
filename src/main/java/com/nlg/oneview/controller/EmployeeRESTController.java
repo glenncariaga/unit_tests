@@ -65,12 +65,15 @@ public class EmployeeRESTController {
 	public Employee updateEmployee(@RequestBody Employee newEmployee, @PathVariable Long id) {
 
 		return repository.findById(id).map(employee -> {
+
 			employee.setFirstName(newEmployee.getFirstName());
 			employee.setLastName(newEmployee.getLastName());
 			employee.setEmail(newEmployee.getEmail());
 			return repository.save(employee);
+
 		}).orElseGet(() -> {
 			newEmployee.setId(id);
+
 			return repository.save(newEmployee);
 		});
 	}
@@ -83,20 +86,29 @@ public class EmployeeRESTController {
 	@PostMapping("/employees/special")
 	public Employee externalCall(@RequestBody Employee employee, @Nullable String testUrl) throws IOException {
 
+		// allows for testing via mockwebserver
 		String useThisUrl = testUrl == null ? getExternalUrl() : testUrl;
+
 		OkHttpClient client = new OkHttpClient();
 		ObjectMapper _payload = new ObjectMapper();
+
 		String payload = _payload.writeValueAsString(employee);
+
+		// creation of the request
 		okhttp3.RequestBody body = okhttp3.RequestBody.create(payload,
 				okhttp3.MediaType.parse("application/json; charset=utf-8"));
 
+		// request builder
 		Request request = new Request.Builder().url(useThisUrl).post(body).build();
-		System.out.println("url: " + getExternalUrl());
+
+		// read the response
 		try (Response response = client.newCall(request).execute()) {
 			String _response = response.body().string();
-			System.out.println("response: " + _response);
+
+			// parse the response
 			ObjectMapper _employee = new ObjectMapper();
 			Employee newEmployee = _employee.readValue(_response, Employee.class);
+
 			return newEmployee;
 		}
 	}

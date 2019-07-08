@@ -28,7 +28,7 @@ import com.squareup.okhttp.mockwebserver.MockWebServer;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class OneViewDataApiApplicationTests {
+public class OneViewDataApiApplicationUnitTests {
 
 	private MockWebServer externalAPI;
 	private String baseUrl;
