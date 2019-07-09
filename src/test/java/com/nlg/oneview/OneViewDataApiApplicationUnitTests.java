@@ -78,11 +78,9 @@ public class OneViewDataApiApplicationUnitTests {
 //		 set the mock server for a response
 		externalAPI.enqueue(new MockResponse().setResponseCode(200)
 				.addHeader("Content-Type", "application/json; charset=utf-8").setBody(payload));
-
-//		EmployeeRESTController mockedEndpoint = Mockito.mock(EmployeeRESTController.class);
+		;
 
 		// run the method under test
-//		Mockito.when(employeeRESTController.getExternalUrl()).thenReturn(baseUrl);
 		Employee employee = employeeRESTController.externalCall(emp, baseUrl);
 
 		// test cases
