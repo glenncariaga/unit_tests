@@ -21,51 +21,34 @@ import org.springframework.security.web.authentication.Http403ForbiddenEntryPoin
 @Order(1)
 public class AuthTokenSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${howtodoinjava.http.auth.tokenName}")
-    private String authHeaderName;
+	@Value("${howtodoinjava.http.auth.tokenName}")
+	private String authHeaderName;
 
-    //TODO: retrieve this token value from data source
-    @Value("${howtodoinjava.http.auth.tokenValue}")
-    private String authHeaderValue;
+	// TODO: retrieve this token value from data source
+	@Value("${howtodoinjava.http.auth.tokenValue}")
+	private String authHeaderValue;
 
-    @Override
-    protected void configure(HttpSecurity httpSecurity) throws Exception 
-    {
-    	PreAuthTokenHeaderFilter filter = new PreAuthTokenHeaderFilter(authHeaderName);
-        
-        filter.setAuthenticationManager(new AuthenticationManager() 
-        {
-            @Override
-            public Authentication authenticate(Authentication authentication) 
-            									throws AuthenticationException 
-            {
-                String principal = (String) authentication.getPrincipal();
-                
-                if (!authHeaderValue.equals(principal))
-                {
-                    throw new BadCredentialsException("The API key was not found "
-                    							+ "or not the expected value.");
-                }
-                authentication.setAuthenticated(true);
-                return authentication;
-            }
-        });
-        
-        httpSecurity.
-            antMatcher("/api/**")
-            .csrf()
-            	.disable()
-            .sessionManagement()
-            	.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            	.addFilter(filter)
-            	.addFilterBefore(new ExceptionTranslationFilter(
-                    new Http403ForbiddenEntryPoint()), 
-            			filter.getClass()
-                )
-            	.authorizeRequests()
-            		.anyRequest()
-            		.authenticated();
-    }
+	@Override
+	protected void configure(HttpSecurity httpSecurity) throws Exception {
+		PreAuthTokenHeaderFilter filter = new PreAuthTokenHeaderFilter(authHeaderName);
+
+		filter.setAuthenticationManager(new AuthenticationManager() {
+			@Override
+			public Authentication authenticate(Authentication authentication) throws AuthenticationException {
+				String principal = (String) authentication.getPrincipal();
+
+				if (!authHeaderValue.equals(principal)) {
+					throw new BadCredentialsException("The API key was not found " + "or not the expected value.");
+				}
+				authentication.setAuthenticated(true);
+				return authentication;
+			}
+		});
+
+		httpSecurity.antMatcher("api/**").csrf().disable().sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().addFilter(filter)
+				.addFilterBefore(new ExceptionTranslationFilter(new Http403ForbiddenEntryPoint()), filter.getClass())
+				.authorizeRequests().anyRequest().authenticated();
+	}
 
 }

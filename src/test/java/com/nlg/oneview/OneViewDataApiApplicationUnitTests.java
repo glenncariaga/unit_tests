@@ -50,6 +50,8 @@ public class OneViewDataApiApplicationUnitTests {
 
 		employeeRESTController = new EmployeeRESTController();
 		employeeRESTController.setRepository(repository);
+
+		// TODO create data
 	}
 
 	@After
@@ -86,19 +88,6 @@ public class OneViewDataApiApplicationUnitTests {
 		// test cases
 		Assert.assertEquals(emp.toString(), employee.toString());
 	}
-
-//	@Test
-//	public void doesExternalCallHandleError() throws Exception{
-//		
-//		Employee emp = new Employee(1L, "First", "Last", "email@email.com");
-//		
-//		externalAPI.enqueue(new MockResponse().setResponseCode(404));
-//		
-//		employeeRESTController.externalCall(emp,baseUrl);
-//		
-//		verify(employeeRESTController.externalCall(emp, baseUrl)).
-//		
-//	}
 
 	@Test
 	public void testGetEmployeeEndpoint() {
@@ -165,5 +154,10 @@ public class OneViewDataApiApplicationUnitTests {
 		employeeRESTController.deleteEmployee(1L);
 
 		verify(repository).deleteById(1L);
+	}
+
+	@Test
+	public void testGetExternalUrl() {
+
 	}
 }

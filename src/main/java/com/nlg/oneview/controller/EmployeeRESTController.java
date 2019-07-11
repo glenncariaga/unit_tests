@@ -89,31 +89,39 @@ public class EmployeeRESTController {
 		// allows for testing via mockwebserver
 		String useThisUrl = testUrl == null ? getExternalUrl() : testUrl;
 
-		OkHttpClient client = new OkHttpClient();
 		ObjectMapper _payload = new ObjectMapper();
 
 		String payload = _payload.writeValueAsString(employee);
 
-		// creation of the request
-		okhttp3.RequestBody body = okhttp3.RequestBody.create(payload,
-				okhttp3.MediaType.parse("application/json; charset=utf-8"));
+		// creation of the body for the request
+		okhttp3.RequestBody body = createRequestBody(payload);
 
 		// request builder
 		Request request = new Request.Builder().url(useThisUrl).post(body).build();
 
 		// read the response
-		try (Response response = client.newCall(request).execute()) {
-			String _response = response.body().string();
+		Response response = httpResponse(request);
 
-			// parse the response
-			ObjectMapper _employee = new ObjectMapper();
-			Employee newEmployee = _employee.readValue(_response, Employee.class);
+		// parse the response
+		ObjectMapper _employee = new ObjectMapper();
+		Employee newEmployee = _employee.readValue(response.body().string(), Employee.class);
 
-			return newEmployee;
-		}
+		return newEmployee;
 	}
 
 	public String getExternalUrl() {
 		return "http://localhost:8090/employee-management/employees";
+	}
+
+	private okhttp3.RequestBody createRequestBody(String payload) {
+		okhttp3.RequestBody body = okhttp3.RequestBody.create(payload,
+				okhttp3.MediaType.parse("application/json; charset=utf-8"));
+		return body;
+	}
+
+	private Response httpResponse(Request request) throws IOException {
+		OkHttpClient client = new OkHttpClient();
+		Response response = client.newCall(request).execute();
+		return response;
 	}
 }

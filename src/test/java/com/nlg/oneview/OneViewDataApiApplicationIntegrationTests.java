@@ -1,150 +1,93 @@
 package com.nlg.oneview;
 
-import java.io.IOException;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import org.junit.Assert;
-import org.junit.Before;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nlg.oneview.controller.EmployeeRESTController;
 import com.nlg.oneview.model.Employee;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import com.nlg.oneview.repository.EmployeeRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@AutoConfigureMockMvc
 public class OneViewDataApiApplicationIntegrationTests {
 
-	ObjectMapper object;
+	@InjectMocks
+	private EmployeeRESTController employeeRESTController;
 
-	String baseUrl = "http://localhost:8090/employee-management";
-	String id;
+	@Mock
+	EmployeeRepository repository;
 
-	@Before
-	public void init() throws IOException {
-		// mock data
-		Employee emp = new Employee(1L, "First", "Last", "email@email.com");
-
-		ObjectMapper _payload = new ObjectMapper();
-
-		String payload = _payload.writeValueAsString(emp);
-		String url = baseUrl + "/employees";
-
-		// build the request
-		okhttp3.RequestBody body = httpRequestBodyBuilder(payload);
-
-		// request/response cycle
-		Request request = new Request.Builder().url(url).post(body).build();
-		Response response = httpResponse(request);
-		payload = response.body().string();
-
-		emp = _payload.readValue(payload, Employee.class);
-
-		id = emp.getId().toString();
-	}
+	@InjectMocks
+	private MockMvc mockMvc;
 
 	@Test
-	public void canCreateOrSaveEmployee() throws IOException {
+	public void canCreateOrSaveEmployee() throws Exception {
+		Employee emp = new Employee(5L, "First", "Last", "email@email.com");
 
-		// mock data
-		Employee emp = new Employee(1L, "First", "Last", "email@email.com");
+		ObjectMapper obj = new ObjectMapper();
+		String payload = obj.writeValueAsString(emp);
 
-		ObjectMapper _payload = new ObjectMapper();
-
-		String payload = _payload.writeValueAsString(emp);
-		String url = baseUrl + "/employees";
-
-		// build the request
-		okhttp3.RequestBody body = httpRequestBodyBuilder(payload);
-
-		// request/response cycle
-		Request request = new Request.Builder().url(url).post(body).build();
-		Response response = httpResponse(request);
-
-		// test cases
-		Assert.assertEquals(response.code(), 200);
+		when(repository.save(emp)).thenReturn(emp);
+		this.mockMvc.perform(post("/employee-management/employees/").contentType("application/json").content(payload))
+				.andExpect(status().is2xxSuccessful()).andExpect(jsonPath("$.firstName").value("First")).andDo(print());
 
 	}
 
 	@Test
-	public void canGetAllEmployees() throws IOException {
-		String url = baseUrl + "/employees";
+	public void canGetAllEmployees() throws Exception {
+		List<Employee> employees = new ArrayList<Employee>();
 
-		Request request = new Request.Builder().url(url).get().build();
-		Response response = httpResponse(request);
-
-		Assert.assertEquals(response.code(), 200);
+		employees.add(new Employee(0L, "First0", "Last0", "email0@email.com"));
+		employees.add(new Employee(0L, "First1", "Last1", "email1@email.com"));
+		employees.add(new Employee(0L, "First2", "Last2", "email2@email.com"));
+		System.out.println("total employees " + employees.toString());
+		when(repository.findAll()).thenReturn(employees);
+		this.mockMvc.perform(get("/employee-management/employees/")).andExpect(status().isOk()).andDo(print());
 	}
 
 	@Test
-	public void canGetEmployeeById() throws IOException {
-		String url = baseUrl + "/employees/";
+	public void canGetEmployeeById() throws Exception {
 
-		Request request = new Request.Builder().url(url + id).get().build();
-		Response response = httpResponse(request);
-
-		Assert.assertEquals(response.code(), 200);
 	}
 
 	@Test
 	public void canPutEmployee() throws IOException {
-		String url = baseUrl + "/employees/";
-		Employee emp = new Employee(1L, "FirstEdit", "LastEdit", "emailEdit@email.com");
-		ObjectMapper _payload = new ObjectMapper();
 
-		String payload = _payload.writeValueAsString(emp);
-
-		// do the put request and record the response
-		okhttp3.RequestBody body = httpRequestBodyBuilder(payload);
-		Request putRequest = new Request.Builder().url(url + id).put(body).build();
-		Response putResponse = httpResponse(putRequest);
-
-		// get the same id from the endpoint
-		Request getRequest = new Request.Builder().url(url + id).get().build();
-		Response getResponse = httpResponse(getRequest);
-
-		// test the put response body is the same as the get response body.
-		Assert.assertEquals(getResponse.body().string(), putResponse.body().string());
-		Assert.assertEquals(putResponse.code(), 200);
 	}
 
 	@Test
 	public void canDeletePost() throws IOException {
-		String url = baseUrl + "/employees/";
 
-		Request request = new Request.Builder().url(url + id).delete().build();
-		Response response = httpResponse(request);
-
-		Assert.assertEquals(response.code(), 200);
 	}
 
 	@Test
 	public void can404Error() throws IOException {
-		String url = baseUrl + "/noUrl";
-		Request request = new Request.Builder().url(url).get().build();
-		Response response = httpResponse(request);
 
-		Assert.assertEquals(response.code(), 404);
 	}
 
-	// JSON parser
-	private okhttp3.RequestBody httpRequestBodyBuilder(String payload) {
-		okhttp3.RequestBody body = okhttp3.RequestBody.create(payload,
-				okhttp3.MediaType.parse("application/json; charset=utf-8"));
-		return body;
-	}
+	@Test
+	public void cannotFindRecord() throws IOException {
 
-	// wrapper for okhttp response
-	private Response httpResponse(Request request) throws IOException {
-		OkHttpClient client = new OkHttpClient();
-
-		Response response = client.newCall(request).execute();
-		return response;
 	}
 
 }
