@@ -1,20 +1,15 @@
 package com.nlg.oneview;
 
-import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,22 +17,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nlg.oneview.controller.EmployeeRESTController;
 import com.nlg.oneview.model.Employee;
-import com.nlg.oneview.repository.EmployeeRepository;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 public class OneViewDataApiApplicationIntegrationTests {
 
-	@InjectMocks
-	private EmployeeRESTController employeeRESTController;
-
-	@Mock
-	EmployeeRepository repository;
-
-	@InjectMocks
+	@Autowired
 	private MockMvc mockMvc;
 
 	@Test
@@ -47,47 +34,51 @@ public class OneViewDataApiApplicationIntegrationTests {
 		ObjectMapper obj = new ObjectMapper();
 		String payload = obj.writeValueAsString(emp);
 
-		when(repository.save(emp)).thenReturn(emp);
 		this.mockMvc.perform(post("/employee-management/employees/").contentType("application/json").content(payload))
-				.andExpect(status().is2xxSuccessful()).andExpect(jsonPath("$.firstName").value("First")).andDo(print());
+				.andExpect(status().isOk()).andExpect(jsonPath("$.firstName").value("First"));
 
 	}
 
 	@Test
 	public void canGetAllEmployees() throws Exception {
-		List<Employee> employees = new ArrayList<Employee>();
 
-		employees.add(new Employee(0L, "First0", "Last0", "email0@email.com"));
-		employees.add(new Employee(0L, "First1", "Last1", "email1@email.com"));
-		employees.add(new Employee(0L, "First2", "Last2", "email2@email.com"));
-		System.out.println("total employees " + employees.toString());
-		when(repository.findAll()).thenReturn(employees);
-		this.mockMvc.perform(get("/employee-management/employees/")).andExpect(status().isOk()).andDo(print());
+		this.mockMvc.perform(get("/employee-management/employees/")).andExpect(status().isOk())
+				.andExpect(jsonPath("$", hasSize(5)));
 	}
 
 	@Test
 	public void canGetEmployeeById() throws Exception {
+		this.mockMvc.perform(get("/employee-management/employees/1")).andExpect(status().isOk())
+				.andExpect(jsonPath("$.firstName").value("Vijay"));
+	}
+
+	@Test
+	public void canPutEmployee() throws Exception {
+		Employee emp = new Employee(5L, "First", "Last", "email@email.com");
+
+		ObjectMapper obj = new ObjectMapper();
+		String payload = obj.writeValueAsString(emp);
+
+		this.mockMvc.perform(put("/employee-management/employees/2").contentType("application/json").content(payload))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.firstName").value("First"));
+	}
+
+	@Test
+	public void canDeletePost() throws Exception {
+		this.mockMvc.perform(delete("/employee-management/employees/3")).andExpect(status().isOk());
 
 	}
 
 	@Test
-	public void canPutEmployee() throws IOException {
-
+	public void can404Error() throws Exception {
+		this.mockMvc.perform(get("/notRealUrl")).andExpect(status().is(404));
 	}
 
 	@Test
-	public void canDeletePost() throws IOException {
-
-	}
-
-	@Test
-	public void can404Error() throws IOException {
-
-	}
-
-	@Test
-	public void cannotFindRecord() throws IOException {
-
+	public void cannotFindRecord() throws Exception {
+		this.mockMvc.perform(get("/employee-management/employees/999"))
+				.andExpect(jsonPath("$.message").value("INCORRECT_REQUEST"))
+				.andExpect(jsonPath("$.details").value("Employee id '999' does no exist"));
 	}
 
 }

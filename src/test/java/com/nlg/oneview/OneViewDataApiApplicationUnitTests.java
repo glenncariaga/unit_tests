@@ -60,15 +60,6 @@ public class OneViewDataApiApplicationUnitTests {
 	}
 
 	@Test
-	public void doesExternalCallMakeExternalCall() throws Exception {
-		// mock data
-		Employee emp = new Employee(1L, "First", "Last", "email@email.com");
-
-		Employee employee = employeeRESTController.externalCall(emp, null);
-		Assert.assertEquals(emp.toString(), employee.toString());
-	}
-
-	@Test
 	public void doesExternalCallUseTheHttpConnector() throws Exception {
 		// mock data
 		Employee emp = new Employee(1L, "First", "Last", "email@email.com");

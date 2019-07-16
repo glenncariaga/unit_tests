@@ -40,6 +40,7 @@ public class EmployeeRESTController {
 		return repository;
 	}
 
+	@Autowired
 	public void setRepository(EmployeeRepository repository) {
 		this.repository = repository;
 	}

@@ -2,6 +2,7 @@ package com.nlg.oneview.model;
 
 import java.io.Serializable;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -11,7 +12,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 
 @Entity
-@Table(name = "tbl_employee")
+@Table(name = "TBL_EMPLOYEES")
 public class Employee implements Serializable {
 	private static final long serialVersionUID = 1L;
 
@@ -19,12 +20,15 @@ public class Employee implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
+	@Column(name = "FIRSTNAME")
 	@NotEmpty(message = "First name must not be empty")
 	private String firstName;
 
+	@Column(name = "LASTNAME")
 	@NotEmpty(message = "Last name must not be empty")
 	private String lastName;
 
+	@Column(name = "email")
 	@NotEmpty(message = "Email must not be empty")
 	@Email(message = "Email must be a valid email address")
 	private String email;
